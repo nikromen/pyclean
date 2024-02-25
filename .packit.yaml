@@ -1,0 +1,18 @@
+# See the documentation for more information:
+# https://packit.dev/docs/configuration/
+
+specfile_path: pyrpm-clean.spec
+
+jobs:
+  - job: copr_build
+    trigger: pull_request
+    targets:
+      - fedora-all
+
+  - job: copr_build
+    trigger: commit
+    targets:
+      - fedora-all
+    owner: "nikromen"
+    project: "pyrpm-clean"
+    branch: main

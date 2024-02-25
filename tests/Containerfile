@@ -1,0 +1,8 @@
+FROM fedora:latest
+
+RUN dnf install -y pip poetry
+
+WORKDIR /src
+COPY . /src
+
+RUN poetry install
