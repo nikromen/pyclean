@@ -1,6 +1,12 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class PkgType(Enum):
+class PkgType(StrEnum):
     pypi = "pypi"
     rpm = "rpm"
+
+
+class CleanType(StrEnum):
+    pypi = "pypi"
+    rpm = "rpm"
+    interactive = "interactive"
