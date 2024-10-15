@@ -2,11 +2,13 @@ from enum import StrEnum
 
 
 class PkgType(StrEnum):
-    pypi = "pypi"
+    pip = "pip"
     rpm = "rpm"
+    pipx = "pipx"
 
 
 class CleanType(StrEnum):
-    pypi = "pypi"
+    pip = "pip"
     rpm = "rpm"
+    pipx = "pipx"
     interactive = "interactive"

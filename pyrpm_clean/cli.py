@@ -40,9 +40,9 @@ def entry_point(ctx: Context, system_clean: bool) -> None:
     "-t",
     "--clean-type",
     type=click.Choice(CleanType.__members__),
-    default=CleanType.pypi,
+    default=CleanType.pip,
     show_default=True,
-    help="Remove pypi or rpm packages or do it interactively.",
+    help="Remove pip, pipx or rpm packages or do it interactively.",
 )
 @click.option(
     "--autoremove",
@@ -67,9 +67,9 @@ def clean(ctx: Context, clean_type: CleanType, autoremove: bool) -> None:
         if input().lower() != "y":
             return
 
-    if clean_type == CleanType.pypi and ctx.obj.cleaner.system_clean:
+    if clean_type in [CleanType.pip, CleanType.pipx] and ctx.obj.cleaner.system_clean:
         print(
-            "You are about to remove pypi packages, this operation may remove system packages "
+            "You are about to remove python packages, this operation may remove system packages "
             "this will probably require running this script as root, which is not recommended."
             "Instead, list the packages you need with --system-clean and then proceed the "
             "removal manually."

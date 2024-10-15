@@ -1,7 +1,9 @@
+import json
 import os
 import site
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
+from pathlib import Path
 from subprocess import PIPE, run
 from typing import Optional
 
@@ -126,7 +128,7 @@ class Cleaner:
 
         return process.stdout.strip() == version
 
-    def _process_pypi_package(self, dist: pkg_resources.Distribution) -> Optional[PackageInfo]:
+    def _process_pip_package(self, dist: pkg_resources.Distribution) -> Optional[PackageInfo]:
         if dist.egg_info is None or dist.location is None:
             raise ValueError("egg_info or location does not exist.")
 
@@ -154,13 +156,13 @@ class Cleaner:
                 version=dist.version,
                 location=dist.location,
                 files=package_files,
-                pkg_type=PkgType.pypi if installer else None,
+                pkg_type=PkgType.pip if installer else None,
             )
 
-    def _get_pypi_packages(self) -> list[PackageInfo]:
+    def _get_pip_packages(self) -> list[PackageInfo]:
         result = []
-        for dist in tqdm(pkg_resources.working_set, desc="Processing pypi packages"):
-            tqdm.write(f"Processing pypi package: {dist.project_name}")
+        for dist in tqdm(pkg_resources.working_set, desc="Processing pip packages"):
+            tqdm.write(f"Processing pip package: {dist.project_name}")
 
             if not self.system_clean and dist.location != site.USER_SITE:
                 continue
@@ -168,26 +170,101 @@ class Cleaner:
             if not dist.has_metadata("RECORD"):
                 continue
 
-            package = self._process_pypi_package(dist)
+            package = self._process_pip_package(dist)
             if package:
                 result.append(package)
 
         return result
 
+    def _pipx_location(self, pkg: dict) -> Optional[Path]:
+        # just best effort, it may not work for all cases
+        try:
+            return Path(pkg["app_paths"][0]["__Path__"]).parent.parent
+        except (IndexError, KeyError) as e:
+            print(f"Error: {e}")
+            return None
+
+    def _pipx_files(self, metadata: dict, pkg_name: str, location: Path) -> list[str]:
+        # this is just best effort, it may not work for all cases
+        try:
+            lib = location / "lib"
+            python_lib_name = Path(metadata["source_interpreter"]["__Path__"]).name
+            guessed_lib_path = lib / python_lib_name
+            if guessed_lib_path.exists():
+                return [
+                    str(path)
+                    for path in (guessed_lib_path / "site-packages" / pkg_name).rglob("*.py")
+                ]
+
+            for dir_name in lib.iterdir():
+                if dir_name.is_dir() and dir_name.name.startswith("python"):
+                    return [
+                        str(path) for path in (dir_name / "site-packages" / pkg_name).rglob("*.py")
+                    ]
+
+            return []
+        except (IndexError, KeyError) as e:
+            print(f"Error: {e}")
+            return []
+
+    def _get_pipx_packages(self) -> list[PackageInfo]:
+        if run(["pipx", "--version"], stdout=PIPE).returncode != 0:
+            return []
+
+        result = []
+        process_stdout = run(
+            ["pipx", "list", "--json"],
+            stdout=PIPE,
+            check=True,
+            text=True,
+        ).stdout.strip()
+        pipx_list_json = json.loads(process_stdout)
+        venvs = pipx_list_json["venvs"]
+        for _, pkg in tqdm(venvs.items(), desc="Processing pipx packages"):
+            metadata = pkg["metadata"]
+            pkg = metadata["main_package"]
+            pkg_name = pkg["package"]
+
+            tqdm.write(f"Processing pipx package: {pkg_name}")
+
+            location = self._pipx_location(pkg)
+            files = []
+            if location is not None:
+                files = self._pipx_files(metadata, pkg_name, location)
+
+            result.append(
+                PackageInfo(
+                    name=pkg_name,
+                    version=pkg["package_version"],
+                    location=str(location),
+                    files=files,
+                    pkg_type=PkgType.pipx,
+                ),
+            )
+
+        return result
+
     def get_packages_to_clean(self) -> dict[str, list[PackageInfo]]:
+        pip_pkgs = self._get_pip_packages()
+        pipx_pkgs = self._get_pipx_packages()
         rpm_pkgs = self._get_rpm_packages()
-        pypi_pkgs = self._get_pypi_packages()
-        dupes_per_package_name = {pkg.name for pkg in rpm_pkgs} & {pkg.name for pkg in pypi_pkgs}
+
+        dupes_per_package_name = (
+            {pkg.name for pkg in rpm_pkgs}
+            & {pkg.name for pkg in pip_pkgs}
+            & {pkg.name for pkg in pipx_pkgs}
+        )
         result: dict[str, list[PackageInfo]] = {name: [] for name in dupes_per_package_name}
-        for pkg in rpm_pkgs + pypi_pkgs:
+
+        for pkg in rpm_pkgs + pip_pkgs + pipx_pkgs:
             if pkg.name in dupes_per_package_name:
                 result[pkg.name].append(pkg)
 
         return result
 
-    def rm_pypi_packages(self, packages: list[str]) -> None:
-        for package in tqdm(packages, desc="Removing pypi packages"):
-            tqdm.write(f"Removing pypi package: {package}")
+    def rm_pip_packages(self, packages: list[str]) -> None:
+        for package in tqdm(packages, desc="Removing pip packages"):
+            tqdm.write(f"Removing pip package: {package}")
             cmd = ["pip", "uninstall"]
             if self.system_clean and os.geteuid() != 0:
                 raise PermissionError("You need to be root to remove system packages system-wide.")
@@ -209,12 +286,12 @@ class Cleaner:
 
         while True:
             print("\nChoose package type to remove:")
-            print("1. pypi")
+            print("1. pip")
             print("2. rpm")
             print("3. Skip")
             choice = input()
             if choice == "1":
-                self.rm_pypi_packages([package])
+                self.rm_pip_packages([package])
                 break
             if choice == "2":
                 self.rm_rpm_packages([package], autoremove)
@@ -230,8 +307,8 @@ class Cleaner:
             print("No packages to clean.")
             return
 
-        if clean_type == CleanType.pypi:
-            self.rm_pypi_packages(dupes)
+        if clean_type == CleanType.pip:
+            self.rm_pip_packages(dupes)
             return
 
         if clean_type == CleanType.rpm:
