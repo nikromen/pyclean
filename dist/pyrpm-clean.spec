@@ -1,6 +1,12 @@
+%global _description %{expand:
+Tool to identify packages installed both as rpm and pip. It can remove
+the pip package if installed as user.
+}
+
+
 Name:           pyrpm-clean
 Version:        1.0.0
-Release:        1%{?dist}
+Release:        %autorelease
 Summary:        Clean python packages installed both as rpm and python package
 
 License:        GPLv3
@@ -17,24 +23,24 @@ Requires: pip
 
 
 %description
-%{summary}
+%{_description}
 
 
 %prep
-%{autosetup}
+%autosetup
 
 
 %generate_buildrequires
-%{pyproject_buildrequires} -r
+%pyproject_buildrequires -r
 
 
 %build
-%{pyproject_wheel}
+%pyproject_wheel
 
 
 %install
-%{pyproject_install}
-%{pyproject_save_files} %{name}
+%pyproject_install
+%pyproject_save_files %{name}
 
 
 %files -n %{name} -f %{pyproject_files}
@@ -44,4 +50,4 @@ Requires: pip
 
 
 %changelog
-%{autochangelog}
+%autochangelog
