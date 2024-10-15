@@ -203,15 +203,15 @@ class Cleaner:
         run(cmd + packages)
 
     def _interactive_clean_step(self, package: str, autoremove: bool) -> None:
-        print("Do you want to remove this package? [y/N]")
+        print("\nDo you want to remove this package? [y/N]")
         if input().lower() != "y":
             return
 
-        print("Choose package type to remove:")
-        print("1. pypi")
-        print("2. rpm")
-        print("3. Skip")
         while True:
+            print("\nChoose package type to remove:")
+            print("1. pypi")
+            print("2. rpm")
+            print("3. Skip")
             choice = input()
             if choice == "1":
                 self.rm_pypi_packages([package])
@@ -227,7 +227,7 @@ class Cleaner:
         dupes_d = self.get_packages_to_clean()
         dupes = list(dupes_d.keys())
         if not dupes:
-            tqdm.write("No packages to clean.")
+            print("No packages to clean.")
             return
 
         if clean_type == CleanType.pypi:
