@@ -1,10 +1,16 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
-    from pyrpm_clean.cleaner import PackageInfo
+    from pyrpm_clean.cleaner.cleaner import PackageInfo
 
 
-def dupe_table(pkg_name: str, package_dupes: list[PackageInfo], verbose: bool = False) -> str:
+def dupe_table(
+    pkg_name: str,
+    package_dupes: list[PackageInfo],
+    verbose: bool = False,
+) -> str:
     """
     Create a table with duplicite packages.
     """
@@ -15,13 +21,19 @@ def dupe_table(pkg_name: str, package_dupes: list[PackageInfo], verbose: bool = 
         "",
         f"Package: {pkg_name}",
         "Duplicities found:",
-        "  | {:<55} {:<15} {:<15} {:<15} |".format("Location", "Version", "Installer", "Files count"),
+        "  | {:<55} {:<15} {:<15} {:<15} |".format(
+            "Location",
+            "Version",
+            "Installer",
+            "Files count",
+        ),
         table_delimiter,
     ]
     for dupe in package_dupes:
         installer_type = dupe.pkg_type.name if dupe.pkg_type else "unknown"
         table.append(
-            f"  | {dupe.location:<55} {dupe.version:<15} {installer_type:<15} {len(dupe.files):<15} |"
+            f"  | {dupe.location: <55} {dupe.version: <15} {installer_type: <15} "
+            f"{len(dupe.files): <15} |",
         )
         if not verbose:
             continue

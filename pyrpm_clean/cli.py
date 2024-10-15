@@ -5,8 +5,8 @@ from typing import Any
 import click
 from click import Context, pass_context
 
-from pyrpm_clean.cleaner import Cleaner
-from pyrpm_clean.constants import CleanType
+from pyrpm_clean.cleaner.cleaner import Cleaner
+from pyrpm_clean.constants import PkgType
 from pyrpm_clean.helpers import dupe_table
 
 
@@ -38,26 +38,48 @@ def entry_point(ctx: Context, system_clean: bool) -> None:
 @entry_point.command("clean")
 @click.option(
     "-t",
-    "--clean-type",
-    type=click.Choice(CleanType.__members__),
-    default=CleanType.pip,
+    "--package-type",
+    type=click.Choice(PkgType.__members__),
+    default=None,
     show_default=True,
-    help="Remove pip, pipx or rpm packages or do it interactively.",
+    help="Clean duplicate python packages from desired package manager.",
 )
 @click.option(
-    "--autoremove",
+    "--auto-remove",
     is_flag=True,
     default=False,
     help="Remove dependencies of the packages, works only with RPMs",
 )
+@click.option(
+    "-i",
+    "--interactive",
+    is_flag=True,
+    default=False,
+    help="Choose package-type in the process and confirm deletion.",
+)
 @pass_context
-def clean(ctx: Context, clean_type: CleanType, autoremove: bool) -> None:
+def clean(
+    ctx: Context,
+    pkg_type: PkgType,
+    auto_remove: bool,
+    interactive: bool,
+) -> None:
     """
-    Remove duplicite packages that are present as pip and rpm package.
+    Remove duplicate packages that are present as pip and rpm package.
 
-    This step is not recommended for running for system clean, as manual inspection might be
-    needed.
+    Or run in interactive mode, where you will choose clean type and confirm deletion on
+    each package. Clean is not recommended for running for system clean, as manual
+    inspection might be needed.
     """
+    if interactive and (auto_remove or pkg_type is not None):
+        print(
+            "Interactive mode is enabled, auto-remove and package type options will be ignored.",
+        )
+
+    if not interactive and pkg_type is None:
+        print("You have to specify package type when not running in interactive mode.")
+        return
+
     if ctx.obj.cleaner.system_clean:
         print(
             "System clean is enabled, this operation may remove system packages."
@@ -67,7 +89,7 @@ def clean(ctx: Context, clean_type: CleanType, autoremove: bool) -> None:
         if input().lower() != "y":
             return
 
-    if clean_type in [CleanType.pip, CleanType.pipx] and ctx.obj.cleaner.system_clean:
+    if pkg_type in [PkgType.pip, PkgType.pipx] and ctx.obj.cleaner.system_clean:
         print(
             "You are about to remove python packages, this operation may remove system packages "
             "this will probably require running this script as root, which is not recommended."
@@ -81,7 +103,7 @@ def clean(ctx: Context, clean_type: CleanType, autoremove: bool) -> None:
         # to give them a chance to cancel :D
         time.sleep(3)
 
-    if clean_type == CleanType.rpm:
+    if pkg_type == PkgType.rpm:
         print(
             "You are about to remove rpm packages, this operation may remove system packages "
             "and requires manual confirmation for removal or manual intervention."
@@ -90,7 +112,7 @@ def clean(ctx: Context, clean_type: CleanType, autoremove: bool) -> None:
         if input().lower() != "y":
             return
 
-    ctx.obj.cleaner.clean(clean_type, autoremove)
+    ctx.obj.cleaner.clean(pkg_type, auto_remove, interactive)
 
 
 @entry_point.command("show")
@@ -107,7 +129,7 @@ def show(ctx: Context, verbose: bool) -> None:
     """
     Show duplicite packages both as rpm and python packages.
     """
-    for pkg_name, dupe in ctx.obj.cleaner.get_packages_to_clean().items():
+    for pkg_name, dupe in ctx.obj.cleaner.get_package_duplicates().items():
         print(dupe_table(pkg_name, dupe, verbose))
 
 
