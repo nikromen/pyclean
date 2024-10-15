@@ -1,5 +1,8 @@
 from pyrpm_clean.constants import PkgType
 from pyrpm_clean.cleaner.package_managers.base import PackageManager, PackageInfo
+from pyrpm_clean.cleaner.package_managers.rpm import Rpm
+from pyrpm_clean.cleaner.package_managers.pip import Pip
+from pyrpm_clean.cleaner.package_managers.pipx import Pipx
 
 from tqdm import tqdm
 
@@ -9,10 +12,9 @@ from pyrpm_clean.helpers import dupe_table
 class Cleaner:
     def __init__(self, system_clean: bool) -> None:
         self.system_clean = system_clean
-        # if breaks, just add list of initiated package manager subclasses to array here
         self._pkg_managers = [
             pkg_manager(self.system_clean)
-            for pkg_manager in PackageManager.__subclasses__()
+            for pkg_manager in [Rpm, Pip, Pipx]
             if pkg_manager(self.system_clean).exists()
         ]
 
