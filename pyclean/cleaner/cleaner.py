@@ -62,10 +62,12 @@ class Cleaner:
 
             print("Invalid input.")
 
-    def _interactive_clean_step(self, package: str) -> None:
+    def _interactive_clean_step(
+            self, package_name: str, packages_infos: list[PackageInfo]
+        ) -> None:
         while True:
-            print("Choose package manager to remove package (write one of these):")
-            for i, pkg_manager in enumerate(self._pkg_managers):
+            print("Choose one package manager to keep the package (write one of these):")
+            for pkg_manager in self._pkg_managers:
                 print(f"{pkg_manager.pkg_type.name}")
 
             chosen_pkg_manager = self._input_for_pkg_manager()
@@ -73,24 +75,36 @@ class Cleaner:
                 "Do you want to automatically remove dependencies of the package? [y/N]"
             )
 
-            if not self._input_ask_yes_no(
-                f"\nDo you really want to remove package {package} via {chosen_pkg_manager.pkg_type}? [y/N]"
-            ):
-                return
+            for pkg_manager in self._pkg_managers:
+                if pkg_manager.pkg_type == chosen_pkg_manager.pkg_type:
+                    continue
 
-            chosen_pkg_manager.remove_python_package(package, chosen_auto_remove)
+                if not any(
+                    pkg_manager.pkg_type == pkg_info.pkg_type
+                    for pkg_info in packages_infos
+                ):
+                    continue
+
+                if not self._input_ask_yes_no(
+                    f"\nDo you really want to remove package {package_name} "
+                    f"via {pkg_manager.pkg_type}? [y/N]"
+                ):
+                    return
+
+                pkg_manager.remove_python_package(package_name, chosen_auto_remove)
 
     def interactive_clean(self) -> None:
         pbar = tqdm(total=1)
         pbar.set_description(f"Getting duplication packages on your system...")
-        dupes_d = self.get_package_duplicates()
-        dupes = list(dupes_d.keys())
+        dupes = self.get_package_duplicates()
         pbar.update(1)
 
-        for package in dupes:
-            print(dupe_table(package, dupes_d[package], verbose=False))
+        pbar_interactive = tqdm(dupes.items())
+        for pkg_name, pkgs_infos in pbar_interactive:
+            pbar_interactive.set_description(f"Cleaning {pkg_name}")
+            print(dupe_table(pkg_name, pkgs_infos, verbose=False))
             print("")
-            self._interactive_clean_step(package)
+            self._interactive_clean_step(pkg_name, pkgs_infos)
 
     @staticmethod
     def _duplicates_for_pkg_type(
