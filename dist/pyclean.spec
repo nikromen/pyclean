@@ -4,7 +4,7 @@ the pip package if installed as user.
 }
 
 
-Name:           pyrpm-clean
+Name:           pyclean
 Version:        1.0.0
 Release:        %autorelease
 Summary:        Clean python packages installed both as rpm and python package

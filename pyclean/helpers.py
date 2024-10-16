@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pyrpm_clean.cleaner.cleaner import PackageInfo
+    from pyclean.cleaner.cleaner import PackageInfo
 
 
 def dupe_table(
@@ -24,7 +24,7 @@ def dupe_table(
         "  | {:<55} {:<20} {:<15} {:<15} {:<15} |".format(
             "Location",
             "Package full name",
-            "Version",
+
             "Installer",
             "Files count",
         ),

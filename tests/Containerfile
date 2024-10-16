@@ -2,7 +2,7 @@ FROM fedora:latest
 
 RUN dnf install -y pip poetry
 
-WORKDIR /src
-COPY . /src
+WORKDIR /src_build
+COPY . /src_build
 
 RUN poetry install

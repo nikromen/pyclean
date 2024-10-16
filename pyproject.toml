@@ -1,15 +1,15 @@
 [tool.poetry]
-name = "pyrpm-clean"
+name = "pyclean"
 version = "1.0.0"
 description = "Clean python packages installed both as rpm and python package"
 authors = ["Jiri Kyjovsky <j1.kyjovsky@gmail.com>"]
 maintainers = ["Jiří Kyjovský <j1.kyjovsky@gmail.com>"]
 license = "GPLv3"
 readme = "README.md"
-homepage = "https://github.com/nikromen/pyrpm-clean"
-repository = "https://github.com/nikromen/pyrpm-clean"
+homepage = "https://github.com/nikromen/pyclean"
+repository = "https://github.com/nikromen/pyclean"
 exclude = ["tests/"]
-packages = [{ include = "pyrpm_clean" }]
+packages = [{ include = "pyclean" }]
 
 
 [tool.poetry.dependencies]
@@ -28,4 +28,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-alpa = "pyrpm_clean.cli.:entry_point"
+alpa = "pyclean.cli:entry_point"

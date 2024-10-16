@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional
 
-from pyrpm_clean.constants import PkgType
+from pyclean.constants import PkgType
 
 
 @dataclass

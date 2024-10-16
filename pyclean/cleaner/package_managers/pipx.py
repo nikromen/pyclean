@@ -5,10 +5,10 @@ from pathlib import Path
 from subprocess import run, PIPE
 from typing import Optional
 
-from pyrpm_clean.cleaner.package_managers.base import PackageManager, PackageInfo
+from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
 from tqdm import tqdm
 
-from pyrpm_clean.constants import PkgType
+from pyclean.constants import PkgType
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 

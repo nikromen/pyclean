@@ -1,12 +1,12 @@
-from pyrpm_clean.constants import PkgType
-from pyrpm_clean.cleaner.package_managers.base import PackageManager, PackageInfo
-from pyrpm_clean.cleaner.package_managers.rpm import Rpm
-from pyrpm_clean.cleaner.package_managers.pip import Pip
-from pyrpm_clean.cleaner.package_managers.pipx import Pipx
+from pyclean.constants import PkgType
+from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
+from pyclean.cleaner.package_managers.rpm import Rpm
+from pyclean.cleaner.package_managers.pip import Pip
+from pyclean.cleaner.package_managers.pipx import Pipx
 
 from tqdm import tqdm
 
-from pyrpm_clean.helpers import dupe_table
+from pyclean.helpers import dupe_table
 
 
 class Cleaner:

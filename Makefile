@@ -1,4 +1,4 @@
-IMAGE_NAME=pyrpm-clean-test
+IMAGE_NAME=pyclean-test
 
 CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
 
@@ -12,5 +12,9 @@ enter-image:
 	$(CONTAINER_ENGINE) run -v .:/src_bind:Z -ti $(IMAGE_NAME) bash
 
 
-check-tests:
+test-in-container:
 	$(CONTAINER_ENGINE) run -v .:/src_bind -ti $(IMAGE_NAME) bash -c "poetry run pytest -vvv tests/"
+
+
+test-locally:
+	poetry run pytest -vvv tests/

@@ -5,10 +5,10 @@ from typing import Optional
 
 import pkg_resources
 
-from pyrpm_clean.cleaner.package_managers.base import PackageManager, PackageInfo
+from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
 from tqdm import tqdm
 
-from pyrpm_clean.constants import PkgType
+from pyclean.constants import PkgType
 
 
 class Pip(PackageManager):

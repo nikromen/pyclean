@@ -1,4 +1,4 @@
-specfile_path: dist/pyrpm-clean.spec
+specfile_path: dist/pyclean.spec
 
 jobs:
   - job: copr_build
@@ -13,5 +13,5 @@ jobs:
       - fedora-all
       - epel-all
     owner: "nikromen"
-    project: "pyrpm-clean"
+    project: "pyclean"
     branch: main

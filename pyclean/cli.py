@@ -5,9 +5,9 @@ from typing import Any
 import click
 from click import Context, pass_context
 
-from pyrpm_clean.cleaner.cleaner import Cleaner
-from pyrpm_clean.constants import PkgType
-from pyrpm_clean.helpers import dupe_table
+from pyclean.cleaner.cleaner import Cleaner
+from pyclean.constants import PkgType
+from pyclean.helpers import dupe_table
 
 
 @dataclass
@@ -19,7 +19,7 @@ def _get_context_settings() -> dict[str, Any]:
     return {"help_option_names": ["-h", "--help"]}
 
 
-@click.group("pyrpm-clean", context_settings=_get_context_settings())
+@click.group("pyclean", context_settings=_get_context_settings())
 @click.option(
     "-s",
     "--system-clean",
