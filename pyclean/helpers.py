@@ -24,7 +24,7 @@ def dupe_table(
         "  | {:<55} {:<20} {:<15} {:<15} {:<15} |".format(
             "Location",
             "Package full name",
-
+            "Version",
             "Installer",
             "Files count",
         ),
