@@ -112,7 +112,10 @@ def clean(
         if input().lower() != "y":
             return
 
-    ctx.obj.cleaner.clean(pkg_type, auto_remove, interactive)
+    if interactive:
+        ctx.obj.cleaner.interactive_clean()
+    else:
+        ctx.obj.cleaner.clean(pkg_type, auto_remove, interactive)
 
 
 @entry_point.command("show")
