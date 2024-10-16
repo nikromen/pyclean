@@ -8,6 +8,9 @@ from pyrpm_clean.constants import PkgType
 @dataclass
 class PackageInfo:
     name: str
+    # some package managers like rpm may have python3- prefix for libraries
+    # and no prefix for executables
+    package_name: str
     version: str
     location: Optional[str]
     files: list[str]

@@ -50,7 +50,7 @@ class Pip(PackageManager):
                 with open(f"{dist.egg_info}/INSTALLER") as file:
                     installer = file.read().strip()
 
-            if installer == PkgType.rpm.name:
+            if installer != PkgType.pip and installer in PkgType:
                 return None
 
             if installer is None and self._package_has_different_installer(
@@ -61,6 +61,7 @@ class Pip(PackageManager):
 
             return PackageInfo(
                 name=dist.project_name,
+                package_name=dist.project_name,
                 version=dist.version,
                 location=dist.location,
                 files=package_files,

@@ -78,6 +78,7 @@ class Pipx(PackageManager):
             result.append(
                 PackageInfo(
                     name=pkg_name,
+                    package_name=pkg_name,
                     version=pkg["package_version"],
                     location=str(location),
                     files=files,

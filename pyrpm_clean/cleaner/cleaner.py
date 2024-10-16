@@ -25,10 +25,21 @@ class Cleaner:
             pkg_manager_pbar.set_description(f"Processing {pkg_manager.pkg_type.name}")
             pkgs.extend(pkg_manager.get_python_packages())
 
-        dupes_per_package_name = {pkg.name for pkg in pkgs}
+        dupes_per_package_name = []
+        unique = set()
+        for pkg in pkgs:
+            if pkg.name in unique:
+                dupes_per_package_name.append(pkg.name)
+            else:
+                unique.add(pkg.name)
+
         result = {name: [] for name in dupes_per_package_name}
         for pkg in pkgs:
-            if pkg.name in dupes_per_package_name:
+            # maybe installed same version via e.g. pip to user-space and system-wide, but
+            # then location should be different
+            if pkg.name in dupes_per_package_name and (
+                result.get(pkg.name) is None or pkg not in result[pkg.name]
+            ):
                 result[pkg.name].append(pkg)
 
         return result
