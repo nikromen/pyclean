@@ -5,7 +5,7 @@ CONTAINER_ENGINE ?= $(shell command -v podman 2> /dev/null || echo docker)
 
 # regenerate new image when needed
 build-image:
-	$(CONTAINER_ENGINE) build --rm --tag $(IMAGE_NAME) -f tests/Containerfile
+	$(CONTAINER_ENGINE) build --rm --tag $(IMAGE_NAME) -f tests/Containerfile .
 
 
 enter-image:

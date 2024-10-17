@@ -17,9 +17,11 @@ BuildArch:      noarch
 
 BuildRequires:  python3-devel
 BuildRequires:  pyproject-rpm-macros
-BuildRequires:  python3-click
 
-Requires: pip
+Requires:       which
+Requires:       python3-click
+Requires:       python3-setuptools
+Requires:       python3-tqdm
 
 
 %description

@@ -1,6 +1,6 @@
 FROM fedora:latest
 
-RUN dnf install -y pip poetry
+RUN dnf install -y pip poetry which
 
 WORKDIR /src_build
 COPY . /src_build
