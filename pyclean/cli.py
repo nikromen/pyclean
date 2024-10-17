@@ -22,17 +22,17 @@ def _get_context_settings() -> dict[str, Any]:
 @click.group("pyclean", context_settings=_get_context_settings())
 @click.option(
     "-s",
-    "--system-clean",
+    "--system",
     is_flag=True,
     default=False,
     help="Look for packages in the whole system.",
 )
 @pass_context
-def entry_point(ctx: Context, system_clean: bool) -> None:
+def entry_point(ctx: Context, system: bool) -> None:
     """
     Tool to identify/remove packages installed both as rpm and pip.
     """
-    ctx.obj = Obj(cleaner=Cleaner(system_clean=system_clean))
+    ctx.obj = Obj(cleaner=Cleaner(system_clean=system))
 
 
 @entry_point.command("clean")
@@ -42,7 +42,7 @@ def entry_point(ctx: Context, system_clean: bool) -> None:
     type=click.Choice(PkgType.__members__),
     default=None,
     show_default=True,
-    help="Clean duplicate python packages from desired package manager.",
+    help="Keep python packages from this desired package manager.",
 )
 @click.option(
     "--auto-remove",

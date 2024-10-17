@@ -20,7 +20,7 @@ class PackageInfo:
 class PackageManager(ABC):
     def __init__(self, system_clean: bool) -> None:
         self.system_clean = system_clean
-        self.pkg_type = None
+        self.pkg_type: PkgType = None  # type: ignore
 
     @abstractmethod
     def get_python_packages(self) -> list[PackageInfo]:

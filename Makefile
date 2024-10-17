@@ -17,4 +17,5 @@ test-in-container:
 
 
 test-locally:
-	poetry run pytest -vvv tests/
+	# run without functional since it installs and removes stuff from system
+	poetry run pytest -vvv tests/unit/
