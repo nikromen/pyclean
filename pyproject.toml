@@ -28,4 +28,4 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.poetry.scripts]
-alpa = "pyclean.cli:entry_point"
+pyclean = "pyclean.cli:entry_point"
