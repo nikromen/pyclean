@@ -1,15 +1,12 @@
 import json
-import os
-import site
 from pathlib import Path
-from subprocess import run, PIPE
+from subprocess import PIPE, run
 from typing import Optional
 
-from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
 from tqdm import tqdm
 
+from pyclean.cleaner.package_managers.base import PackageInfo, PackageManager
 from pyclean.constants import PkgType
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Pipx(PackageManager):
@@ -35,7 +32,7 @@ class Pipx(PackageManager):
                 return [
                     str(path)
                     for path in (guessed_lib_path / "site-packages" / pkg_name).rglob(
-                        "*.py"
+                        "*.py",
                     )
                 ]
 
@@ -44,7 +41,7 @@ class Pipx(PackageManager):
                     return [
                         str(path)
                         for path in (dir_name / "site-packages" / pkg_name).rglob(
-                            "*.py"
+                            "*.py",
                         )
                     ]
 

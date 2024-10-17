@@ -1,11 +1,10 @@
-from pyclean.constants import PkgType
-from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
-from pyclean.cleaner.package_managers.rpm import Rpm
-from pyclean.cleaner.package_managers.pip import Pip
-from pyclean.cleaner.package_managers.pipx import Pipx
-
 from tqdm import tqdm
 
+from pyclean.cleaner.package_managers.base import PackageInfo
+from pyclean.cleaner.package_managers.pip import Pip
+from pyclean.cleaner.package_managers.pipx import Pipx
+from pyclean.cleaner.package_managers.rpm import Rpm
+from pyclean.constants import PkgType
 from pyclean.helpers import dupe_table
 
 
@@ -13,9 +12,10 @@ class Cleaner:
     def __init__(self, system_clean: bool) -> None:
         self.system_clean = system_clean
         self._pkg_managers = [
-            pkg_manager(self.system_clean)
+            # wtf mypy, pkg_manager is not abstract, where do you see it?
+            pkg_manager(self.system_clean)  # type: ignore
             for pkg_manager in [Rpm, Pip, Pipx]
-            if pkg_manager(self.system_clean).exists()
+            if pkg_manager(self.system_clean).exists()  # type: ignore
         ]
 
     def get_package_duplicates(self) -> dict[str, list[PackageInfo]]:
@@ -33,7 +33,7 @@ class Cleaner:
             else:
                 unique.add(pkg.name)
 
-        result = {name: [] for name in dupes_per_package_name}
+        result: dict[str, list[PackageInfo]] = {name: [] for name in dupes_per_package_name}
         for pkg in pkgs:
             # maybe installed same version via e.g. pip to user-space and system-wide, but
             # then location should be different
@@ -63,7 +63,11 @@ class Cleaner:
 
             print("Invalid input.")
 
-    def _interactive_clean_step(self, package_name: str, packages_infos: list[PackageInfo]) -> None:
+    def _interactive_clean_step(
+        self,
+        package_name: str,
+        packages_infos: list[PackageInfo],
+    ) -> None:
         package_infos_copy = packages_infos.copy()
         while len(package_infos_copy) > 1:
             print(dupe_table(package_name, package_infos_copy, verbose=False))
@@ -72,26 +76,27 @@ class Cleaner:
             chosen_pkg = self._input_for_package(package_infos_copy)
             chosen_auto_remove = self._input_ask_yes_no(
                 "Do you want to automatically remove dependencies of the package "
-                f"{chosen_pkg.name}? [y/N]"
+                f"{chosen_pkg.name}? [y/N]",
             )
 
             if not self._input_ask_yes_no(
                 f"\nDo you really want to remove package {chosen_pkg.name} "
-                f"via {chosen_pkg.pkg_type}? [y/N]"
+                f"via {chosen_pkg.pkg_type}? [y/N]",
             ):
                 return
 
             for pkg_manager in self._pkg_managers:
                 if pkg_manager.pkg_type == chosen_pkg.pkg_type:
                     pkg_manager.remove_python_package(
-                        chosen_pkg.name, chosen_auto_remove
+                        chosen_pkg.name,
+                        chosen_auto_remove,
                     )
 
             package_infos_copy.remove(chosen_pkg)
 
     def interactive_clean(self) -> None:
         pbar = tqdm(total=1)
-        pbar.set_description(f"Getting duplication packages on your system...")
+        pbar.set_description("Getting duplication packages on your system...")
         dupes = self.get_package_duplicates()
         pbar.update(1)
 
@@ -102,30 +107,32 @@ class Cleaner:
 
     @staticmethod
     def _duplicates_for_pkg_type(
-        pkg_type: PkgType, duplicates: dict[str, list[PackageInfo]]
+        pkg_type: PkgType,
+        duplicates: dict[str, list[PackageInfo]],
     ) -> set[str]:
         result = set()
-        for pkg_name, pkgs in duplicates.items():
+        for _, pkgs in duplicates.items():
             for pkg in pkgs:
                 if pkg.pkg_type == pkg_type:
-                    result.add(pkg_name)
+                    result.add(pkg.package_name)
                     break
 
         return result
 
     def clean(self, pkg_type: PkgType, auto_remove: bool) -> None:
         for pkg_manager in self._pkg_managers:
-            if pkg_manager.pkg_type != pkg_type:
+            if pkg_manager.pkg_type == pkg_type:
                 continue
 
             pbar = tqdm(total=2)
-            pbar.set_description(f"Getting duplication packages on your system...")
+            pbar.set_description("Getting duplication packages on your system...")
             dupes = self._duplicates_for_pkg_type(
-                pkg_manager.pkg_type, self.get_package_duplicates()
+                pkg_manager.pkg_type,
+                self.get_package_duplicates(),
             )
             pbar.update(1)
             pbar.set_description(
-                f"Removing duplicates for {pkg_manager.pkg_type.name}..."
+                f"Removing duplicates for {pkg_manager.pkg_type.name}...",
             )
             pkg_manager.remove_python_packages(dupes, auto_remove)
             pbar.update(1)

@@ -1,13 +1,11 @@
-import os
-import site
-from subprocess import run, PIPE
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from subprocess import PIPE, run
 from typing import Optional
 
-from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
 from tqdm import tqdm
 
+from pyclean.cleaner.package_managers.base import PackageInfo, PackageManager
 from pyclean.constants import PkgType
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 class Rpm(PackageManager):
@@ -76,12 +74,12 @@ class Rpm(PackageManager):
 
     @staticmethod
     def _without_duplicates(packages: list[PackageInfo]) -> list[PackageInfo]:
-        pkg_name_d = {pkg.name: [] for pkg in packages}
+        pkg_name_d: dict[str, list[PackageInfo]] = {pkg.name: [] for pkg in packages}
         for package in packages:
             pkg_name_d[package.name].append(package)
 
         result = []
-        for pkg_name, pkgs in pkg_name_d.items():
+        for _, pkgs in pkg_name_d.items():
             # no dupe, correct
             if len(pkgs) == 1:
                 result.append(pkgs[0])

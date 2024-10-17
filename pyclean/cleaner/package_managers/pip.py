@@ -1,13 +1,12 @@
 import os
 import site
-from subprocess import run, PIPE
+from subprocess import PIPE, run
 from typing import Optional
 
 import pkg_resources
-
-from pyclean.cleaner.package_managers.base import PackageManager, PackageInfo
 from tqdm import tqdm
 
+from pyclean.cleaner.package_managers.base import PackageInfo, PackageManager
 from pyclean.constants import PkgType
 
 
@@ -36,7 +35,8 @@ class Pip(PackageManager):
         return process.stdout.strip() == version
 
     def _process_pip_package(
-        self, dist: pkg_resources.Distribution
+        self,
+        dist: pkg_resources.Distribution,
     ) -> Optional[PackageInfo]:
         if dist.egg_info is None or dist.location is None:
             raise ValueError("egg_info or location does not exist.")
@@ -91,7 +91,7 @@ class Pip(PackageManager):
             cmd = ["pip", "uninstall"]
             if self.system_clean and os.geteuid() != 0:
                 raise PermissionError(
-                    "You need to be root to remove system packages system-wide."
+                    "You need to be root to remove system packages system-wide.",
                 )
 
             run([*cmd, package], check=True)
