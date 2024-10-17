@@ -11,7 +11,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    image: fedora:latest
+    container:
+      image: fedora:latest
 
     steps:
       - uses: actions/checkout@v3
