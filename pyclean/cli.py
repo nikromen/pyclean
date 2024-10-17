@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Optional
 
 import click
 from click import Context, pass_context
@@ -55,12 +55,12 @@ def entry_point(ctx: Context, system_clean: bool) -> None:
     "--interactive",
     is_flag=True,
     default=False,
-    help="Choose package-type in the process and confirm deletion.",
+    help="Choose package duplicates to remove in the process and confirm deletion.",
 )
 @pass_context
 def clean(
     ctx: Context,
-    pkg_type: PkgType,
+    package_type: Optional[PkgType],
     auto_remove: bool,
     interactive: bool,
 ) -> None:
@@ -71,12 +71,12 @@ def clean(
     each package. Clean is not recommended for running for system clean, as manual
     inspection might be needed.
     """
-    if interactive and (auto_remove or pkg_type is not None):
+    if interactive and (auto_remove or package_type is not None):
         print(
             "Interactive mode is enabled, auto-remove and package type options will be ignored.",
         )
 
-    if not interactive and pkg_type is None:
+    if not interactive and package_type is None:
         print("You have to specify package type when not running in interactive mode.")
         return
 
@@ -89,7 +89,7 @@ def clean(
         if input().lower() != "y":
             return
 
-    if pkg_type in [PkgType.pip, PkgType.pipx] and ctx.obj.cleaner.system_clean:
+    if package_type in [PkgType.pip, PkgType.pipx] and ctx.obj.cleaner.system_clean:
         print(
             "You are about to remove python packages, this operation may remove system packages "
             "this will probably require running this script as root, which is not recommended."
@@ -103,7 +103,7 @@ def clean(
         # to give them a chance to cancel :D
         time.sleep(3)
 
-    if pkg_type == PkgType.rpm:
+    if package_type == PkgType.rpm:
         print(
             "You are about to remove rpm packages, this operation may remove system packages "
             "and requires manual confirmation for removal or manual intervention."
@@ -115,7 +115,7 @@ def clean(
     if interactive:
         ctx.obj.cleaner.interactive_clean()
     else:
-        ctx.obj.cleaner.clean(pkg_type, auto_remove, interactive)
+        ctx.obj.cleaner.clean(package_type, auto_remove, interactive)
 
 
 @entry_point.command("show")

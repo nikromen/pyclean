@@ -14,14 +14,14 @@ def dupe_table(
     """
     Create a table with duplicite packages.
     """
-    table_delimiter = "  | " + "-" * 124 + " |"
-    main_delimiter = "=" * 130
+    table_delimiter = "    | " + "-" * 124 + " |"
+    main_delimiter = "=" * 132
     table = [
         main_delimiter,
         "",
-        f"Name: {name}",
-        "Duplicities found:",
-        "  | {:<55} {:<20} {:<15} {:<15} {:<15} |".format(
+        f" Name: {name}",
+        " Duplicities found:",
+        "    | {:<55} {:<20} {:<15} {:<15} {:<15} |".format(
             "Location",
             "Package full name",
             "Version",
@@ -30,18 +30,18 @@ def dupe_table(
         ),
         table_delimiter,
     ]
-    for dupe in package_dupes:
+    for i, dupe in enumerate(package_dupes):
         installer_type = dupe.pkg_type.name if dupe.pkg_type else "unknown"
         table.append(
-            f"  | {dupe.location: <55} {dupe.package_name: <20} {dupe.version: <15} "
+            f" {i + 1}. | {dupe.location: <55} {dupe.package_name: <20} {dupe.version: <15} "
             f"{installer_type: <15} {len(dupe.files): <15} |",
         )
         if not verbose:
             continue
 
-        table.append("  | Files:" + " " * 113 + " |")
+        table.append("  | Files:" + " " * 115 + " |")
         for file in dupe.files:
-            table.append(f"  |   {file:<117} |")
+            table.append(f"  |   {file:<119} |")
 
         table.append(table_delimiter)
 

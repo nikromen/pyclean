@@ -44,14 +44,15 @@ class Cleaner:
 
         return result
 
-    def _input_for_pkg_manager(self) -> PackageManager:
+    def _input_for_package(self, package_infos: list[PackageInfo]) -> PackageInfo:
         while True:
-            chosen_pkg_manager = input()
-            for pkg_manager in self._pkg_managers:
-                if pkg_manager.pkg_type.name == chosen_pkg_manager:
-                    return pkg_manager
+            chosen_pkg_index = input()
+            if chosen_pkg_index.isdigit():
+                chosen_pkg_index_i = int(chosen_pkg_index)
+                if 1 <= chosen_pkg_index_i <= len(package_infos):
+                    return package_infos[chosen_pkg_index_i - 1]
 
-            print("Invalid package manager name.")
+            print("Invalid package number.")
 
     @staticmethod
     def _input_ask_yes_no(msg: str) -> bool:
@@ -62,36 +63,31 @@ class Cleaner:
 
             print("Invalid input.")
 
-    def _interactive_clean_step(
-            self, package_name: str, packages_infos: list[PackageInfo]
-        ) -> None:
-        while True:
-            print("Choose one package manager to keep the package (write one of these):")
-            for pkg_manager in self._pkg_managers:
-                print(f"{pkg_manager.pkg_type.name}")
+    def _interactive_clean_step(self, package_name: str, packages_infos: list[PackageInfo]) -> None:
+        package_infos_copy = packages_infos.copy()
+        while len(package_infos_copy) > 1:
+            print(dupe_table(package_name, package_infos_copy, verbose=False))
+            print("Choose package for removal (write the number of the package above):")
 
-            chosen_pkg_manager = self._input_for_pkg_manager()
+            chosen_pkg = self._input_for_package(package_infos_copy)
             chosen_auto_remove = self._input_ask_yes_no(
-                "Do you want to automatically remove dependencies of the package? [y/N]"
+                "Do you want to automatically remove dependencies of the package "
+                f"{chosen_pkg.name}? [y/N]"
             )
 
+            if not self._input_ask_yes_no(
+                f"\nDo you really want to remove package {chosen_pkg.name} "
+                f"via {chosen_pkg.pkg_type}? [y/N]"
+            ):
+                return
+
             for pkg_manager in self._pkg_managers:
-                if pkg_manager.pkg_type == chosen_pkg_manager.pkg_type:
-                    continue
+                if pkg_manager.pkg_type == chosen_pkg.pkg_type:
+                    pkg_manager.remove_python_package(
+                        chosen_pkg.name, chosen_auto_remove
+                    )
 
-                if not any(
-                    pkg_manager.pkg_type == pkg_info.pkg_type
-                    for pkg_info in packages_infos
-                ):
-                    continue
-
-                if not self._input_ask_yes_no(
-                    f"\nDo you really want to remove package {package_name} "
-                    f"via {pkg_manager.pkg_type}? [y/N]"
-                ):
-                    return
-
-                pkg_manager.remove_python_package(package_name, chosen_auto_remove)
+            package_infos_copy.remove(chosen_pkg)
 
     def interactive_clean(self) -> None:
         pbar = tqdm(total=1)
@@ -102,8 +98,6 @@ class Cleaner:
         pbar_interactive = tqdm(dupes.items())
         for pkg_name, pkgs_infos in pbar_interactive:
             pbar_interactive.set_description(f"Cleaning {pkg_name}")
-            print(dupe_table(pkg_name, pkgs_infos, verbose=False))
-            print("")
             self._interactive_clean_step(pkg_name, pkgs_infos)
 
     @staticmethod
